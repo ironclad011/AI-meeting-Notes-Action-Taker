@@ -44,9 +44,13 @@ describe('Auth Endpoints (/api/auth)', () => {
         .post('/api/auth/register')
         .send(validUserData);
 
-      expect(res.statusCode).toBe(400);
-      expect(res.body.success).toBe(false);
-      expect(res.body.error.message).toMatch(/already registered/i);
+      expect(res.statusCode).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toHaveProperty('token');
+      expect(res.body.data.user).toHaveProperty('id');
+      expect(res.body.data.user.email).toBe(validUserData.email);
+      expect(res.body.data.user.name).toBe(validUserData.name);
+      expect(res.body.data.user).not.toHaveProperty('passwordHash');
     });
 
     it('should reject registration if password is less than 8 characters', async () => {

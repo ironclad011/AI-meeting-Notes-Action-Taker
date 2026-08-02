@@ -4,20 +4,22 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
-  const isTxtExtension = file.originalname.toLowerCase().endsWith('.txt');
-  const isTxtMime = file.mimetype === 'text/plain' || file.mimetype === 'text/octet-stream' || file.mimetype === 'application/octet-stream';
+  const name = file.originalname.toLowerCase();
+  const isTxt = name.endsWith('.txt');
+  const isPdf = name.endsWith('.pdf');
+  const isDocx = name.endsWith('.docx');
 
-  if (isTxtExtension || isTxtMime) {
+  if (isTxt || isPdf || isDocx) {
     cb(null, true);
   } else {
-    cb(new Error('Invalid file format. Only plain text (.txt) files are allowed.'), false);
+    cb(new Error('Invalid file format. Only .txt, .pdf, and .docx files are allowed.'), false);
   }
 };
 
 const upload = multer({
   storage,
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB cap
+    fileSize: 5 * 1024 * 1024, // 5MB cap for PDF/DOCX
   },
   fileFilter,
 }).single('file');
@@ -32,7 +34,7 @@ const uploadTranscriptMiddleware = (req, res, next) => {
         return res.status(400).json({
           success: false,
           error: {
-            message: 'File size exceeds maximum limit of 2MB.',
+            message: 'File size exceeds maximum limit of 5MB.',
           },
         });
       }
@@ -55,7 +57,7 @@ const uploadTranscriptMiddleware = (req, res, next) => {
       return res.status(400).json({
         success: false,
         error: {
-          message: 'Please provide a .txt transcript file to upload.',
+          message: 'Please provide a .txt, .pdf, or .docx transcript file to upload.',
         },
       });
     }

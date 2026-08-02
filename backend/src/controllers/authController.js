@@ -30,10 +30,13 @@ const register = async (req, res, next) => {
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          message: 'Email is already registered.',
+      // If user already exists, treat as login and return token
+      const token = generateToken(existingUser);
+      return res.status(200).json({
+        success: true,
+        data: {
+          user: existingUser.toJSON(),
+          token,
         },
       });
     }

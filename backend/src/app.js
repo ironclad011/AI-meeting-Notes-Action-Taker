@@ -32,9 +32,13 @@ app.get('/api/health', (req, res) => {
 // API Routes
 const authRoutes = require('./routes/authRoutes');
 const meetingRoutes = require('./routes/meetingRoutes');
+const actionItemRoutes = require('./routes/actionItemRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/meetings', meetingRoutes);
+app.use('/api/action-items', actionItemRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Centralized Error Handler (must be registered after routes)
 app.use(errorHandler);

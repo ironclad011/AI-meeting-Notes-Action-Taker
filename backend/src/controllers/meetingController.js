@@ -218,17 +218,32 @@ const uploadTranscript = async (req, res, next) => {
       });
     }
 
-    const textContent = req.file.buffer.toString('utf-8');
+    const fileName = req.file.originalname.toLowerCase();
+    let textContent = '';
+
+    if (fileName.endsWith('.pdf')) {
+      const pdfParseModule = require('pdf-parse');
+      const pdfParse = typeof pdfParseModule === 'function' ? pdfParseModule : (pdfParseModule.default || pdfParseModule);
+      const pdfData = await pdfParse(req.file.buffer);
+      textContent = pdfData.text;
+    } else if (fileName.endsWith('.docx')) {
+      const mammoth = require('mammoth');
+      const docxResult = await mammoth.extractRawText({ buffer: req.file.buffer });
+      textContent = docxResult.value;
+    } else {
+      textContent = req.file.buffer.toString('utf-8');
+    }
+
     if (!textContent || textContent.trim() === '') {
       return res.status(400).json({
         success: false,
         error: {
-          message: 'Uploaded file is empty.',
+          message: 'Uploaded file is empty or contains no extractable text.',
         },
       });
     }
 
-    meeting.transcript = textContent;
+    meeting.transcript = textContent.trim();
     meeting.transcriptSource = 'uploaded';
     await meeting.save();
 

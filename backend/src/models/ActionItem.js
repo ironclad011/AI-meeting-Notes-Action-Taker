@@ -59,12 +59,27 @@ const actionItemSchema = new mongoose.Schema(
   }
 );
 
+// Indexes
 actionItemSchema.index({ owner: 1, status: 1 });
 actionItemSchema.index({ owner: 1, dueDate: 1 });
+actionItemSchema.index({ description: 'text' });
+
+/**
+ * Reusable helper function to check if an ActionItem is overdue.
+ * Overdue = dueDate < now AND status != "Completed"
+ * Items with dueDate == null or status == "Completed" are NEVER overdue.
+ */
+const isOverdue = (item) => {
+  if (!item || !item.dueDate) return false;
+  if (item.status === 'Completed') return false;
+  const due = new Date(item.dueDate);
+  return due < new Date();
+};
 
 actionItemSchema.methods.toJSON = function () {
   const item = this.toObject();
   item.id = item._id.toString();
+  item.isOverdue = isOverdue(item);
   delete item.__v;
   return item;
 };
@@ -73,6 +88,7 @@ const ActionItem = mongoose.model('ActionItem', actionItemSchema);
 
 module.exports = {
   ActionItem,
+  isOverdue,
   ACTION_ITEM_PRIORITIES,
   ACTION_ITEM_STATUSES,
   ACTION_ITEM_SOURCES,

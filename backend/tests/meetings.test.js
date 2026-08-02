@@ -229,22 +229,22 @@ describe('Meeting Endpoints (/api/meetings)', () => {
       expect(res.body.data.meeting.transcriptSource).toBe('uploaded');
     });
 
-    it('should reject non-.txt file upload (e.g. .pdf or .png)', async () => {
-      const fileBuffer = Buffer.from('PDF binary content');
+    it('should reject invalid file format upload (e.g. .png or .exe)', async () => {
+      const fileBuffer = Buffer.from('PNG binary content');
 
       const res = await request(app)
         .post(`/api/meetings/${meetingId}/transcript-file`)
         .set('Authorization', `Bearer ${user1Token}`)
-        .attach('file', fileBuffer, 'document.pdf');
+        .attach('file', fileBuffer, 'image.png');
 
       expect(res.statusCode).toBe(400);
       expect(res.body.success).toBe(false);
-      expect(res.body.error.message).toMatch(/only plain text \(\.txt\) files are allowed/i);
+      expect(res.body.error.message).toMatch(/only \.txt, \.pdf, and \.docx files are allowed/i);
     });
 
-    it('should reject file upload that exceeds 2MB size cap', async () => {
-      // 2.5MB buffer
-      const largeBuffer = Buffer.alloc(2.5 * 1024 * 1024, 'a');
+    it('should reject file upload that exceeds 5MB size cap', async () => {
+      // 5.5MB buffer
+      const largeBuffer = Buffer.alloc(5.5 * 1024 * 1024, 'a');
 
       const res = await request(app)
         .post(`/api/meetings/${meetingId}/transcript-file`)
@@ -253,7 +253,7 @@ describe('Meeting Endpoints (/api/meetings)', () => {
 
       expect(res.statusCode).toBe(400);
       expect(res.body.success).toBe(false);
-      expect(res.body.error.message).toMatch(/maximum limit of 2MB/i);
+      expect(res.body.error.message).toMatch(/maximum limit of 5MB/i);
     });
   });
 });
